@@ -10,6 +10,8 @@ class Ray :
         self.pos = pos
         self.dir = dir
         #print(dir)
+    def pointAtParameter(self,t):
+        return self.pos + (self.dir*t)
 
 def hitSphere(origin,r,ray):
     oc = ray.pos-origin
@@ -17,12 +19,19 @@ def hitSphere(origin,r,ray):
     b = 2 * (oc.dot(ray.dir))
     c = (oc.dot(oc)) - (r*r)
     disc = b*b-4*a*c
-    return disc > 0
+    if disc < 0:
+        return -1
+    else:
+        return (-b - math.sqrt(disc) / 2*a)
+    #it's the quadratic formula. if the discriminant (4ac) is -, it yields an
+    #imaginary number- which means it does not hit the sphere.
 
 
 def color(ray):
-    if hitSphere(Vector(0,0,-1),.5,ray):
-        return Vector(1,0,0)
+    h = hitSphere(Vector(0,0,-1),.5,ray)
+    if h > 0:
+        N = (ray.pointAtParameter(h) - Vector(0,0,-1)).unit()
+        return .5*Vector(N.x+1,N.y+1,N.z+1)
     if ray.dir.to_list() == [0,0,0]: #If it is 0,0,0, doing unit operation will not work, so just pass it 0.
         d = ray.dir.to_list() #because if unit worked (it doesn't- 0,0,0 makes it divide by 0) it would still be this.
     else:
