@@ -11,17 +11,26 @@ class Ray :
         self.dir = dir
         #print(dir)
 
+def hitSphere(origin,r,ray):
+    oc = ray.pos-origin
+    a = (ray.dir .dot( ray.dir))
+    b = 2 * (oc.dot(ray.dir))
+    c = (oc.dot(oc)) - (r*r)
+    disc = b*b-4*a*c
+    return disc > 0
+
 
 def color(ray):
-    if ray.dir.to_list() == [0,0,0]:
-        d = ray.dir.to_list()
+    if hitSphere(Vector(0,0,-1),.5,ray):
+        return Vector(1,0,0)
+    if ray.dir.to_list() == [0,0,0]: #If it is 0,0,0, doing unit operation will not work, so just pass it 0.
+        d = ray.dir.to_list() #because if unit worked (it doesn't- 0,0,0 makes it divide by 0) it would still be this.
     else:
-        d = ray.dir.unit().to_list()
+        d = ray.dir.unit().to_list() #if it's not 0, then make a unit thing.
     
-    unitDirection = Vector(d[0],d[1],d[2])
-    #print(unitDirection)
-    t = .5*(unitDirection.y+1)
-    return (Vector(1,1,1)*(t))+(Vector(.5, .7, 1)*(1-t))
+    unitDirection = Vector(d[0],d[1],d[2]) #construct unit
+    t = .5*(unitDirection.y+1) #lerp alpha value, based on how far down the vector is
+    return (Vector(1,1,1)*(t))+(Vector(.5, .7, 1)*(1-t)) #take white, the base color, and then add blue (2nd vec) based on alpha value 
     
 class Vector:
         """
@@ -82,6 +91,10 @@ class Vector:
         def __truediv__(self, other):
                 return Vector(self.x / other, self.y / other, self.z / other)
 
+        def dot(self, other):
+            return self.magnitude() * other.magnitude() * ((self*other)/(self.magnitude()*other.magnitude()))
+
+            
         def __pow__(self, exp):
                 if exp != 2:
                         raise ValueError("Exponent can only be two")

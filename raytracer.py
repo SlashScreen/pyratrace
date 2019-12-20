@@ -10,7 +10,7 @@ raw = img.load()
 lowerLeftCorner = Vector(-2,-1,-1)
 hAxis = Vector(4.0,0,0)
 vAxis = Vector(0,2,0)
-Origin = Point(0,0,0)
+Origin = Vector(0,0,0)
 for x in range(window["w"]):
     for y in range(window["h"]):
         u = (x/window["w"])
