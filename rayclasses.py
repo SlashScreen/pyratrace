@@ -5,7 +5,48 @@ from functools import reduce
 import math
 import numpy as np
 
-class Ray :
+class Material: #this is unused right now
+    def __init__(self,alb,diff,met,trans,sub,lum,tex = None):
+        self.albedo = alb
+        self.diffuse = diff
+        self.shiny = met #I am totally blanking on  the technical term for this. Specular?...
+        self.transparency = trans #trans rights fuck jk rowling
+        self.subsurface = sub
+        self.luminocity = lum
+        self.tex = tex
+
+class Mesh: #unused right now
+    def __init__(self):
+        self.mesh = None
+
+class Sphere:
+    def __init__(self,origin,r,mat = None):
+        self.origin = origin
+        self.radius = r
+        self.material = mat #mat watson??
+        
+    def hit(self,ray):
+        #see if and where ray hits sphere and if it does what normal
+        oc = ray.pos-self.origin
+        a = (ray.dir .dot( ray.dir))
+        b = 2 * (oc.dot(ray.dir))
+        c = (oc.dot(oc)) - (self.radius**2)
+        disc = b**2-4*a*c
+        if disc < 0:
+            return -1
+        else:
+            return (-b - math.sqrt(disc) / 2*a)
+        #it's the quadratic formula. if the discriminant (4ac) is -, it yields an
+        #imaginary number- which means it has no roots, and thus does not hit the sphere.
+
+
+class hitRecord: #unused temporarily.
+    def __init__(self,t,p,normal):
+        self.n = normal
+        self.p = p
+        self.t = t
+
+class Ray: #Ray
     def __init__(self,pos,dir):
         self.pos = pos
         self.dir = dir
@@ -13,35 +54,22 @@ class Ray :
     def pointAtParameter(self,t):
         return self.pos + (self.dir*t)
 
-def hitSphere(origin,r,ray):
-    oc = ray.pos-origin
-    a = (ray.dir .dot( ray.dir))
-    b = 2 * (oc.dot(ray.dir))
-    c = (oc.dot(oc)) - (r*r)
-    disc = b*b-4*a*c
-    if disc < 0:
-        return -1
-    else:
-        return (-b - math.sqrt(disc) / 2*a)
-    #it's the quadratic formula. if the discriminant (4ac) is -, it yields an
-    #imaginary number- which means it does not hit the sphere.
 
 
-def color(ray):
-    h = hitSphere(Vector(0,0,-1),.5,ray)
-    if h > 0:
-        N = (ray.pointAtParameter(h) - Vector(0,0,-1)).unit()
-        return .5*Vector(N.x+1,N.y+1,N.z+1)
-    if ray.dir.to_list() == [0,0,0]: #If it is 0,0,0, doing unit operation will not work, so just pass it 0.
-        d = ray.dir.to_list() #because if unit worked (it doesn't- 0,0,0 makes it divide by 0) it would still be this.
-    else:
-        d = ray.dir.unit().to_list() #if it's not 0, then make a unit thing.
-    
+def color(ray,hittable):
+    #Hittable list
+    for b in hittable:
+        h = b.hit(ray)
+        if h > 0:
+            N = (ray.pointAtParameter(h) - Vector(0,0,-1)).unit()
+            return .5*Vector(N.x+1,N.y+1,N.z+1)
+    #Render sky - lerp from blue to white based on vertical ray position.
+    d = ray.dir.to_list() 
     unitDirection = Vector(d[0],d[1],d[2]) #construct unit
     t = .5*(unitDirection.y+1) #lerp alpha value, based on how far down the vector is
     return (Vector(1,1,1)*(t))+(Vector(.5, .7, 1)*(1-t)) #take white, the base color, and then add blue (2nd vec) based on alpha value 
     
-class Vector:
+class Vector: #vector class, has all methods
         """
         A generic 3-element vector. All of the methods should be self-explanatory.
         """
@@ -56,11 +84,14 @@ class Vector:
 
         def unit(self):
                 """Return a Vector instance of the unit vector"""
-                return Vector(
-                    (self.x / self.magnitude()),
-                    (self.y / self.magnitude()),
-                    (self.z / self.magnitude())
-                )
+                if self.magnitude() == 0:
+                    return Vector (0,0,0)
+                else:
+                    return Vector(
+                        (self.x / self.magnitude()),
+                        (self.y / self.magnitude()),
+                        (self.z / self.magnitude())
+                    )
 
         def magnitude(self):
                 """Return magnitude of the vector."""
@@ -100,7 +131,7 @@ class Vector:
         def __truediv__(self, other):
                 return Vector(self.x / other, self.y / other, self.z / other)
 
-        def dot(self, other):
+        def dot(self, other): #is this bad
             return self.magnitude() * other.magnitude() * ((self*other)/(self.magnitude()*other.magnitude()))
 
             
