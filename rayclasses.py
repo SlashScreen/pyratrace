@@ -84,13 +84,14 @@ class Vector: #vector class, has all methods
 
         def unit(self):
                 """Return a Vector instance of the unit vector"""
-                if self.magnitude() == 0:
+                m = self.magnitude()
+                if m == 0:
                     return Vector (0,0,0)
                 else:
                     return Vector(
-                        (self.x / self.magnitude()),
-                        (self.y / self.magnitude()),
-                        (self.z / self.magnitude())
+                        (self.x / m),
+                        (self.y / m),
+                        (self.z / m)
                     )
 
         def magnitude(self):
@@ -114,7 +115,10 @@ class Vector: #vector class, has all methods
                 return "Vector({}, {}, {})".format(*self)
 
         def __add__(self, other):
-                return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+                if isinstance(other, Vector):
+                    return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+                else:
+                    return Vector(self.x + other, self.y + other, self.z + other)
 
         def __sub__(self, other):
                 return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
