@@ -1,31 +1,55 @@
 #rayclasses.py
 
-#from vectors import Point, Vector
+###INCLUDES###
+
 from functools import reduce
 import math
 import numpy as np
 
+###FUNCTIONS###
+
+def color(ray,hittable): #Main render function: grabs color according to vector.
+    # go through Hittable list
+    for b in hittable:
+        h = b.hit(ray)
+        if h > 0:
+            N = (ray.pointAtParameter(h) - Vector(0,0,-1)).unit() #calculate normal, athough im pretty sure this is wrong haha
+            return .5*Vector(N.x+1,N.y+1,N.z+1)
+        
+    #Render sky - lerp from blue to white based on vertical ray position.
+    d = ray.dir.to_list() 
+    unitDirection = Vector(d[0],d[1],d[2]) #construct unit
+    t = .5*(unitDirection.y+1) #lerp alpha value, based on how far down the vector is
+    return (Vector(1,1,1)*(t))+(Vector(.5, .7, 1)*(1-t)) #take white, the base color, and then add blue (2nd vec) based on alpha value 
+    
+
+###CLASSES###
+
 class Material: #this is unused right now
-    def __init__(self,alb,diff,met,trans,sub,lum,tex = None):
+    def __init__(self,alb,diff,met,trans,sub,lum,shader = None, tex = None):
         self.albedo = alb
         self.diffuse = diff
         self.shiny = met #I am totally blanking on  the technical term for this. Specular?...
         self.transparency = trans #trans rights fuck jk rowling
         self.subsurface = sub
-        self.luminocity = lum
-        self.tex = tex
+        self.luminosity = lum
+        self.tex = tex #There are a lot of textures models these days need. will probably have to be an object with normals, distortion, etc. packed in
+        self.shader = shader #NTS: when this object is hit apply shader to that pixel
+
+        #General flow is:
+        #Get pos hit on mesh, pull pixel color from uv map at that point, then blend with color gained from  shadows, reflections, etc.
 
 class Mesh: #unused right now
     def __init__(self):
         self.mesh = None
 
-class Sphere:
+class Sphere: #Sphere object.
     def __init__(self,origin,r,mat = None):
         self.origin = origin
         self.radius = r
-        self.material = mat #mat watson??
+        self.material = mat #mat watson?? from super mega???
         
-    def hit(self,ray):
+    def hit(self,ray): #Does ray collide with sphere
         #see if and where ray hits sphere and if it does what normal
         oc = ray.pos-self.origin
         a = (ray.dir .dot( ray.dir))
@@ -46,30 +70,16 @@ class hitRecord: #unused temporarily.
         self.p = p
         self.t = t
 
-class Ray: #Ray
+class Ray: #Ray.
     def __init__(self,pos,dir):
         self.pos = pos
         self.dir = dir
-        #print(dir)
-    def pointAtParameter(self,t):
+        
+    def pointAtParameter(self,t): #gets point t along the ray, and returns it in world space.
         return self.pos + (self.dir*t)
 
 
-
-def color(ray,hittable):
-    #Hittable list
-    for b in hittable:
-        h = b.hit(ray)
-        if h > 0:
-            N = (ray.pointAtParameter(h) - Vector(0,0,-1)).unit()
-            return .5*Vector(N.x+1,N.y+1,N.z+1)
-    #Render sky - lerp from blue to white based on vertical ray position.
-    d = ray.dir.to_list() 
-    unitDirection = Vector(d[0],d[1],d[2]) #construct unit
-    t = .5*(unitDirection.y+1) #lerp alpha value, based on how far down the vector is
-    return (Vector(1,1,1)*(t))+(Vector(.5, .7, 1)*(1-t)) #take white, the base color, and then add blue (2nd vec) based on alpha value 
-    
-class Vector: #vector class, has all methods
+class Vector: #vector class, has all methods. Comprised from several people's vector methods as well as my own.
         """
         A generic 3-element vector. All of the methods should be self-explanatory.
         """
@@ -104,7 +114,7 @@ class Vector: #vector class, has all methods
                 '''Returns an array of [x,y,z] of the end points'''
                 return [self.x, self.y, self.z]
 
-        def normalize(self):
+        def normalize(self): #yes this also means unit. I didn't know that.
                 return self / self.norm()
 
         def reflect(self, other):
@@ -135,7 +145,7 @@ class Vector: #vector class, has all methods
         def __truediv__(self, other):
                 return Vector(self.x / other, self.y / other, self.z / other)
 
-        def dot(self, other): #is this bad
+        def dot(self, other): #is this wrong?
             return self.magnitude() * other.magnitude() * ((self*other)/(self.magnitude()*other.magnitude()))
 
             
