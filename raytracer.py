@@ -22,7 +22,7 @@ Origin = Vector(0,0,0) #camera position.
 
 #define objects
 #temporarily hardcoded spheres
-hittableList = [Sphere(Vector(0,0,-1),.5),Sphere(Vector(2,-1,-2),.5),Sphere(Vector(-2,0,-2),.5)]
+hittableList = [Sphere(Vector(0,0,-1),.5),Sphere(Vector(0,5,-1),4),Sphere(Vector(-2,0,-2),.5)]
 cam = Camera(lowerLeftCorner,hAxis,vAxis,3,Origin)
 ###RENDER LOOP##
 

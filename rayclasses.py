@@ -12,10 +12,10 @@ import random
 def color(ray,hittable): #Main render function: grabs color according to vector.
     # go through Hittable list
     for b in hittable:
-        h = b.hit(ray)
+        h,rec = b.hit(ray)
         if h > 0:
-            N = (ray.pointAtParameter(h) - Vector(0,0,-1)).unit() #calculate normal, athough im pretty sure this is wrong haha
-            return .5*Vector(N.x+1,N.y+1,N.z+1)
+            target = rec.p + rec.n + randomInUnitSphere()
+            return .5 * color(Ray(rec.p,target-rec.p),hittable)
         
     #Render sky - lerp from blue to white based on vertical ray position.
     d = ray.dir.to_list() 
@@ -68,9 +68,11 @@ class Sphere: #Sphere object.
         c = (oc.dot(oc)) - (self.radius**2)
         disc = b**2-4*a*c
         if disc < 0:
-            return -1
+            return -1,None
         else:
-            return (-b - math.sqrt(disc) / 2*a)
+            t=(-b - math.sqrt(disc) / 2*a)
+            p=ray.pointAtParameter(t)
+            return (-b - math.sqrt(disc) / 2*a),hitRecord(t,p,(p-self.origin)/self.radius)
         #it's the quadratic formula. if the discriminant (4ac) is -, it yields an
         #imaginary number- which means it has no roots, and thus does not hit the sphere.
 
