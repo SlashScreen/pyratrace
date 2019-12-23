@@ -25,6 +25,22 @@ def color(ray,hittable): #Main render function: grabs color according to vector.
 
 ###CLASSES###
 
+class Camera:
+    def __init__(self, lowerLeftCorner,hAxis,vAxis,origin = Vector()):
+        self.lowerLeftCorner = lowerLeftCorner
+        self.hAxis = hAxis
+        self.vAxis = vAxis
+        self.origin = origin
+
+    def move(diff): #move camera by some amount. diff is vector
+        self.origin += diff
+
+    def set(newLocation): #set camera to new position. newLocation is vector
+        self.origin = newLocation
+
+    def calculateRay(u,v):
+        return Ray(self.origin,(self.lowerLeftCorner+(self.hAxis*u)+(self.vAxis*v)).unit())
+        
 class Material: #this is unused right now
     def __init__(self,alb,diff,met,trans,sub,lum,shader = None, tex = None):
         self.albedo = alb
