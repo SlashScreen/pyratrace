@@ -5,6 +5,7 @@
 from functools import reduce
 import math
 import numpy as np
+import random
 
 ###FUNCTIONS###
 
@@ -21,25 +22,19 @@ def color(ray,hittable): #Main render function: grabs color according to vector.
     unitDirection = Vector(d[0],d[1],d[2]) #construct unit
     t = .5*(unitDirection.y+1) #lerp alpha value, based on how far down the vector is
     return (Vector(1,1,1)*(t))+(Vector(.5, .7, 1)*(1-t)) #take white, the base color, and then add blue (2nd vec) based on alpha value 
-    
+
+def random():
+    random.seed()
+    return random.random()
+
+def randomInUnitSphere():
+    p = Vector()
+    while p.magnitude() >= 1:
+        p = .2*(random(),random(),random()) - Vector(1,1,1)
+    return p
+        
 
 ###CLASSES###
-
-class Camera:
-    def __init__(self, lowerLeftCorner,hAxis,vAxis,origin = Vector()):
-        self.lowerLeftCorner = lowerLeftCorner
-        self.hAxis = hAxis
-        self.vAxis = vAxis
-        self.origin = origin
-
-    def move(diff): #move camera by some amount. diff is vector
-        self.origin += diff
-
-    def set(newLocation): #set camera to new position. newLocation is vector
-        self.origin = newLocation
-
-    def calculateRay(u,v):
-        return Ray(self.origin,(self.lowerLeftCorner+(self.hAxis*u)+(self.vAxis*v)).unit())
         
 class Material: #this is unused right now
     def __init__(self,alb,diff,met,trans,sub,lum,shader = None, tex = None):
@@ -162,7 +157,7 @@ class Vector: #vector class, has all methods. Comprised from several people's ve
                 return Vector(self.x / other, self.y / other, self.z / other)
 
         def dot(self, other): #is this wrong?
-            return self.magnitude() * other.magnitude() * ((self*other)/(self.magnitude()*other.magnitude()))
+            return np.dot(np.array(self.to_list()),np.array(other.to_list()))
 
             
         def __pow__(self, exp):
@@ -175,3 +170,34 @@ class Vector: #vector class, has all methods. Comprised from several people's ve
                 yield self.x
                 yield self.y
                 yield self.z
+
+class Camera:
+    def __init__(self,lowerLeftCorner,hAxis,vAxis,samples,origin = Vector()):
+        self.lowerLeftCorner = lowerLeftCorner
+        self.hAxis = hAxis
+        self.vAxis = vAxis
+        self.origin = origin
+        self.samples = samples
+        self.aa = False #make this settable
+
+    def move(self,diff): #move camera by some amount. diff is vector
+        self.origin += diff
+
+    def set(self,newLocation): #set camera to new position. newLocation is vector
+        self.origin = newLocation
+
+    def calculateRay(self,u,v):
+        return Ray(self.origin,(self.lowerLeftCorner+(self.hAxis*u)+(self.vAxis*v)).unit())
+
+    def cast(self,u,v,hitList,window): #ominous
+        if self.aa:
+            col = Vector()
+            xSize = 1/window['w']
+            ySize = 1/window['h']
+            for s in range(self.samples):
+                random.seed()
+                col += color(self.calculateRay(u+random.uniform(-xSize,xSize),v+random.uniform(-ySize,ySize)),hitList)
+            col = col / self.samples
+            return col
+        else:
+            return color(self.calculateRay(u,v),hitList)
